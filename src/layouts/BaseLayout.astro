@@ -1,0 +1,55 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string; // absolute URL
+  settings: any;
+  bodyClass?: string;
+}
+
+const { title, description, ogImage, settings, bodyClass } = Astro.props;
+const fullTitle = title === settings.uiText.siteName ? title : `${title} — ${settings.uiText.siteName}`;
+const desc = description || settings.seoDescription;
+const canonicalUrl = new URL(Astro.url.pathname, settings.siteUrl).toString();
+const resolvedOgImage = ogImage
+  ? new URL(ogImage, settings.siteUrl).toString()
+  : settings.ogDefaultImage
+  ? new URL(settings.ogDefaultImage, settings.siteUrl).toString()
+  : undefined;
+---
+
+<!doctype html>
+<html lang={settings.locale.split("-")[0] || "en"}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonicalUrl} />
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
+    <meta name="twitter:card" content={resolvedOgImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+
+    <style set:html={`:root { --wall: ${settings.theme.wallColor}; --frame-dark: ${settings.theme.frameColor}; --mat: ${settings.theme.matColor}; }`} />
+
+    {settings.analytics?.enabled && settings.analytics.provider === "plausible" && (
+      <script is:inline data-domain={settings.analytics.siteId} src="https://plausible.io/js/script.js" defer></script>
+    )}
+    {settings.analytics?.enabled && settings.analytics.provider === "goatcounter" && (
+      <script is:inline data-goatcounter={`https://${settings.analytics.siteId}.goatcounter.com/count`} async src="//gc.zgo.at/count.js"></script>
+    )}
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

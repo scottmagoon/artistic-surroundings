@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import WingDoorway from "../components/WingDoorway.astro";
+import Footer from "../components/Footer.astro";
+import { loadSettings } from "../lib/settings.mjs";
+import { getManifest } from "../lib/manifest.mjs";
+
+const settings = loadSettings();
+const { wings, warnings } = await getManifest(settings);
+for (const w of warnings) console.warn(`[manifest] warning: ${w}`);
+---
+
+<BaseLayout title={settings.uiText.siteName} settings={settings}>
+  <main id="main">
+    <header class="site-header">
+      <div class="kicker" style="margin-top:0;">{settings.uiText.lobbyKicker}</div>
+      <h1>{settings.uiText.siteName}</h1>
+    </header>
+    <p class="lobby-intro">{settings.uiText.lobbyIntro}</p>
+    <div class="wings">
+      {wings.map((wing) => <WingDoorway settings={settings} wing={wing} />)}
+    </div>
+  </main>
+  <Footer settings={settings} />
+</BaseLayout>

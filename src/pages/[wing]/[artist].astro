@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import Section from "../../components/Section.astro";
+import Lightbox from "../../components/Lightbox.astro";
+import { loadSettings } from "../../lib/settings.mjs";
+import { getManifest } from "../../lib/manifest.mjs";
+import { resolveImage } from "../../lib/images.mjs";
+
+export async function getStaticPaths() {
+  const settings = loadSettings();
+  const { wings } = await getManifest(settings);
+  const paths: any[] = [];
+  for (const wing of wings) {
+    if (wing.data.type !== "directory") continue;
+    for (const artist of wing.data.artists) {
+      const others = wing.data.artists.filter((a: any) => a.slug !== artist.slug);
+      paths.push({ params: { wing: wing.config.slug, artist: artist.slug }, props: { wing, artist, others } });
+    }
+  }
+  return paths;
+}
+
+const { wing, artist, others } = Astro.props;
+const settings = loadSettings();
+const coverMeta = await resolveImage(artist.cover.contentPath);
+---
+
+<BaseLayout title={artist.name} settings={settings} ogImage={coverMeta.src}>
+  <main id="main">
+    <Header
+      kicker={`The ${wing.config.name} Wing`}
+      title={artist.name}
+      backHref={`/${wing.config.slug}`}
+      backLabel={settings.uiText.backToDirectory}
+    />
+    <nav id="artist-nav" aria-label="Choose artist">
+      <a href={`/${wing.config.slug}/${artist.slug}`} class:list={["active", { featured: artist.featured !== false }]}>{artist.name}</a>
+      {others.map((a: any) => (
+        <a href={`/${wing.config.slug}/${a.slug}`} class:list={{ featured: a.featured !== false }}>{a.name}</a>
+      ))}
+    </nav>
+    {artist.sections.map((section: any, i: number) => (
+      <Section
+        settings={settings}
+        wingConfig={wing.config}
+        section={section}
+        groupId={`${artist.slug}-${i}`}
+        displayMode={wing.config.displayMode}
+        altPrefix={artist.name}
+      />
+    ))}
+  </main>
+  <Footer settings={settings} />
+  <Lightbox />
+</BaseLayout>

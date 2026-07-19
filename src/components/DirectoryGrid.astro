@@ -1,0 +1,92 @@
+---
+// Searchable artist directory (Music wing). Server-renders the full grid
+// so it works with no JS; a small client script filters by name as-you-type.
+import { Picture } from "astro:assets";
+import { resolveImage } from "../lib/images.mjs";
+import { countWordParts } from "../lib/text.mjs";
+
+interface Props {
+  settings: any;
+  wingSlug: string;
+  artists: any[];
+}
+const { settings, wingSlug, artists } = Astro.props;
+const { eventWord, photoWord } = countWordParts(settings.uiText.countWords);
+
+const featured = artists.filter((a) => a.featured !== false);
+const rest = artists.filter((a) => a.featured === false);
+
+const featuredMeta = await Promise.all(featured.map((a) => resolveImage(a.cover.contentPath)));
+const restMeta = await Promise.all(rest.map((a) => resolveImage(a.cover.contentPath)));
+---
+
+<div class="search-row">
+  <input id="search" type="search" placeholder={settings.uiText.searchPlaceholder} aria-label="Search artists" />
+</div>
+
+<div id="featured-block" hidden={featured.length === 0}>
+  <div class="tier-label"><span class="star">★</span>{settings.uiText.featuredTierLabel}</div>
+  <div class="grid featured-grid" id="featured-grid">
+    {featured.map((artist, i) => (
+      <a class="tile" href={`/${wingSlug}/${artist.slug}`} data-name={artist.name.toLowerCase()}>
+        <div class="frame">
+          <div class="mat">
+            <Picture src={featuredMeta[i]} widths={[260, 520]} sizes="260px" formats={["webp"]} fallbackFormat="jpg" alt={`${artist.name} — cover photograph`} loading="lazy" decoding="async" />
+          </div>
+        </div>
+        <div class="placard">
+          <div class="name">{artist.name} <span class="star">★</span></div>
+          <div class="counts">{artist.eventCount} {eventWord} · {artist.photoCount} {photoWord}</div>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>
+
+<div id="all-block" hidden={rest.length === 0}>
+  <div class="tier-label">{settings.uiText.allArtistsTierLabel}</div>
+  <div class="grid" id="all-grid">
+    {rest.map((artist, i) => (
+      <a class="tile" href={`/${wingSlug}/${artist.slug}`} data-name={artist.name.toLowerCase()}>
+        <div class="frame">
+          <div class="mat">
+            <Picture src={restMeta[i]} widths={[210, 420]} sizes="210px" formats={["webp"]} fallbackFormat="jpg" alt={`${artist.name} — cover photograph`} loading="lazy" decoding="async" />
+          </div>
+        </div>
+        <div class="placard">
+          <div class="name">{artist.name}</div>
+          <div class="counts">{artist.eventCount} {eventWord} · {artist.photoCount} {photoWord}</div>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>
+
+<p id="empty-note">{settings.uiText.noSearchResults}</p>
+
+<script>
+  const input = document.getElementById("search") as HTMLInputElement;
+  const tiles = Array.from(document.querySelectorAll<HTMLElement>(".tile"));
+  const featuredBlock = document.getElementById("featured-block") as HTMLElement;
+  const allBlock = document.getElementById("all-block") as HTMLElement;
+  const emptyNote = document.getElementById("empty-note") as HTMLElement;
+  const hasFeatured = featuredBlock && !featuredBlock.hidden;
+  const hasAll = allBlock && !allBlock.hidden;
+
+  input?.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    let anyFeatured = false;
+    let anyAll = false;
+    tiles.forEach((tile) => {
+      const match = (tile.dataset.name || "").includes(q);
+      tile.hidden = !match;
+      if (match) {
+        if (tile.closest("#featured-grid")) anyFeatured = true;
+        else anyAll = true;
+      }
+    });
+    if (featuredBlock) featuredBlock.hidden = !(hasFeatured && anyFeatured);
+    if (allBlock) allBlock.hidden = !(hasAll && anyAll);
+    emptyNote.style.display = anyFeatured || anyAll ? "none" : "block";
+  });
+</script>

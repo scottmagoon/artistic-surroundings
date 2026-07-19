@@ -1,0 +1,63 @@
+---
+// Server-renders the wall thumbnail as a real <picture> (webp + jpeg
+// fallback, responsive widths) via astro:assets — no client JS needed to
+// build the wall itself. A hidden <template> carries the larger lightbox
+// variant; browsers don't fetch anything inside a <template> until it's
+// cloned into the live DOM, so this costs nothing until a visitor clicks.
+import { Picture } from "astro:assets";
+import { resolveImage } from "../lib/images.mjs";
+
+interface Props {
+  photo: { contentPath: string; width: number; height: number };
+  alt: string;
+  index: number;
+  groupId: string;
+  settings: any;
+}
+const { photo, alt, index, groupId, settings } = Astro.props;
+const meta = await resolveImage(photo.contentPath);
+const isPortrait = photo.height > photo.width;
+const quality = settings.advanced.imageQuality;
+// Frames are sized by a definite width (target hang height × aspect ratio)
+// so every frame occupies its true footprint before its lazy image loads —
+// height follows via aspect-ratio, so nothing letterboxes when a max-width
+// clamp kicks in on small screens.
+const targetHeight = isPortrait ? 380 : 320;
+const aspectRatio = photo.width / photo.height;
+const displayWidth = Math.round(targetHeight * aspectRatio);
+---
+
+<figure class="frame" style={`--photo-w: ${displayWidth}px; --photo-ar: ${aspectRatio.toFixed(4)}`}>
+  <button
+    type="button"
+    class="frame-button"
+    data-lightbox-group={groupId}
+    data-lightbox-index={index}
+    aria-label={`View “${alt}” larger`}
+  >
+    <div class="mat">
+      <Picture
+        src={meta}
+        widths={[400, 800]}
+        sizes="(max-width: 640px) 300px, 500px"
+        formats={["webp"]}
+        fallbackFormat="jpg"
+        quality={quality}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  </button>
+  <template data-lightbox-template>
+    <Picture
+      src={meta}
+      widths={[1000, 2000]}
+      sizes="100vw"
+      formats={["webp"]}
+      fallbackFormat="jpg"
+      quality={quality}
+      alt={alt}
+    />
+  </template>
+</figure>

@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import DirectoryGrid from "../../components/DirectoryGrid.astro";
+import Section from "../../components/Section.astro";
+import Lightbox from "../../components/Lightbox.astro";
+import { loadSettings } from "../../lib/settings.mjs";
+import { getManifest } from "../../lib/manifest.mjs";
+
+export async function getStaticPaths() {
+  const settings = loadSettings();
+  const { wings } = await getManifest(settings);
+  return wings.map((wing) => ({ params: { wing: wing.config.slug }, props: { wing } }));
+}
+
+const { wing } = Astro.props;
+const settings = loadSettings();
+---
+
+<BaseLayout title={wing.config.name} settings={settings}>
+  <main id="main">
+    {wing.data.type === "directory" ? (
+      <>
+        <Header
+          kicker={`The ${wing.config.name} Wing`}
+          title="Artist Directory"
+          backHref="/"
+          backLabel={settings.uiText.backToLobby}
+          lede="Choose a hallway to walk through."
+        />
+        <DirectoryGrid settings={settings} wingSlug={wing.config.slug} artists={wing.data.artists} />
+      </>
+    ) : (
+      <>
+        <Header
+          kicker={settings.uiText.siteName}
+          title={wing.config.name}
+          backHref="/"
+          backLabel={settings.uiText.backToLobby}
+        />
+        {wing.data.type === "sectioned-wall" &&
+          wing.data.sections.map((section: any, i: number) => (
+            <Section
+              settings={settings}
+              wingConfig={wing.config}
+              section={section}
+              groupId={`${wing.config.slug}-${i}`}
+              displayMode={wing.config.displayMode}
+            />
+          ))}
+        {wing.data.type === "single-wall" && (
+          <Section
+            settings={settings}
+            wingConfig={wing.config}
+            section={{ title: wing.config.name, photos: wing.data.photos }}
+            groupId={`${wing.config.slug}-0`}
+            displayMode={wing.config.displayMode}
+            showHeading={false}
+          />
+        )}
+      </>
+    )}
+  </main>
+  <Footer settings={settings} />
+  <Lightbox />
+</BaseLayout>

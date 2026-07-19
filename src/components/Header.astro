@@ -1,0 +1,17 @@
+---
+interface Props {
+  kicker: string;
+  title: string;
+  backHref?: string;
+  backLabel?: string;
+  lede?: string;
+}
+const { kicker, title, backHref, backLabel, lede } = Astro.props;
+---
+
+<header class="site-header">
+  {backHref && <a class="back" href={backHref}>&#8592; {backLabel}</a>}
+  <div class="kicker">{kicker}</div>
+  <h1>{title}</h1>
+  {lede && <p class="lede">{lede}</p>}
+</header>

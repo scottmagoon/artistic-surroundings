@@ -1,0 +1,27 @@
+---
+import { Picture } from "astro:assets";
+import { resolveImage } from "../lib/images.mjs";
+import { countWordParts } from "../lib/text.mjs";
+
+interface Props {
+  settings: any;
+  wing: any; // { config, eventCount, photoCount, cover }
+}
+const { settings, wing } = Astro.props;
+const { eventWord, photoWord } = countWordParts(settings.uiText.countWords);
+const meta = await resolveImage(wing.cover.contentPath);
+---
+
+<a class="wing" href={`/${wing.config.slug}`}>
+  <div class="doorframe">
+    <div class="mat">
+      <Picture src={meta} widths={[270, 540]} sizes="270px" formats={["webp"]} fallbackFormat="jpg" alt={`${wing.config.name} wing entrance`} loading="lazy" decoding="async" />
+    </div>
+  </div>
+  <div class="placard">
+    <div class="name">{wing.config.name}</div>
+    <div class="desc">
+      {wing.config.description || `${wing.eventCount} ${eventWord} · ${wing.photoCount} ${photoWord}`}
+    </div>
+  </div>
+</a>

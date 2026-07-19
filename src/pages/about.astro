@@ -1,0 +1,80 @@
+---
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { Picture } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { loadSettings, CONTENT_ROOT } from "../lib/settings.mjs";
+import { resolveImage } from "../lib/images.mjs";
+
+const settings = loadSettings();
+const paragraphs = settings.aboutPageText
+  .split(/\n\s*\n/)
+  .map((p: string) => p.trim())
+  .filter(Boolean);
+
+let portraitMeta = null;
+if (settings.aboutPhoto) {
+  const portraitPath = join(CONTENT_ROOT, settings.aboutPhoto);
+  if (existsSync(portraitPath)) {
+    portraitMeta = await resolveImage(portraitPath);
+  } else {
+    console.warn(`[settings] warning: aboutPhoto "${settings.aboutPhoto}" not found in content/ — hiding the portrait frame`);
+  }
+}
+
+const [userPart, domainPart] = settings.contactEmail.split("@");
+---
+
+<BaseLayout title="About" settings={settings}>
+  <main id="main">
+    <Header kicker="The Artist" title="About" backHref="/" backLabel={settings.uiText.backToLobby} />
+
+    <div class="about-wrap">
+      {portraitMeta && (
+        <div class="portrait-frame">
+          <div class="mat">
+            <Picture src={portraitMeta} widths={[420, 840]} sizes="420px" formats={["webp"]} fallbackFormat="jpg" alt="Portrait of the artist" />
+          </div>
+        </div>
+      )}
+
+      <div class="bio">
+        <h2>About Mary Jane</h2>
+        {paragraphs.map((p: string) => <p>{p}</p>)}
+
+        <div class="contact-block">
+          <div class="label">Contact</div>
+          <div class="contact-row">
+            {settings.obfuscateEmail ? (
+              <a class="obfuscated-email" href="#" data-u={userPart} data-d={domainPart}>(enable JavaScript to view email)</a>
+            ) : (
+              <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>
+            )}
+          </div>
+          {settings.socialLinks.length > 0 && (
+            <div class="contact-row">
+              {settings.socialLinks.map((link: any, i: number) => (
+                <>
+                  {i > 0 && <>&nbsp;·&nbsp;</>}
+                  <a href={link.url} rel="me">{link.label}</a>
+                </>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  </main>
+  <Footer settings={settings} />
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>(".obfuscated-email").forEach((el) => {
+    const addr = `${el.dataset.u}@${el.dataset.d}`;
+    el.href = `mailto:${addr}`;
+    el.textContent = addr;
+  });
+</script>

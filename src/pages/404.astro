@@ -1,0 +1,18 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { loadSettings } from "../lib/settings.mjs";
+
+const settings = loadSettings();
+---
+
+<BaseLayout title={settings.uiText.notFoundTitle} settings={settings}>
+  <main id="main">
+    <Header kicker={settings.uiText.siteName} title={settings.uiText.notFoundTitle} backHref="/" backLabel={settings.uiText.backToLobby} />
+    <div class="empty-room">
+      <p>{settings.uiText.notFoundMessage}</p>
+    </div>
+  </main>
+  <Footer settings={settings} />
+</BaseLayout>

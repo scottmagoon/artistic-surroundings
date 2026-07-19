@@ -1,0 +1,88 @@
+# ============================================
+# Site settings — edit values, commit, push.
+# Every field below has a comment explaining what it does, so day-to-day
+# editing is always "change a value," never "figure out what field to add."
+# ============================================
+
+# --- Site identity ---
+siteUrl: https://artistic-surroundings.vercel.app   # REQUIRED: update when the custom domain is connected
+locale: en-US                        # date/month display language
+seoDescription: >
+  Original watercolor paintings by Mary Jane Magoon — landscapes, still life,
+  people, and animals.
+ogDefaultImage: ""                   # social-share image for pages without a cover (path or leave empty to auto-pick)
+
+# --- About page ---
+aboutPageText: |
+  Mary Jane Magoon is a watercolor artist living in rural Connecticut. With a degree in interior design, thirty years as an interior design professional, and certification as a color consultant, she brings a lifelong devotion to color into every painting.
+
+  Watercolor is her medium of choice — she is especially drawn to "the transparency and natural flow of watercolor paint," and finds a never-ending supply of subjects in the everyday objects and landscapes around her.
+
+  For ten years, Mary Jane owned the Artistic Surroundings gallery in Danbury, Connecticut, offering fine art and custom framing — the namesake of this collection. Her work has appeared in group and solo shows across Connecticut, New York, and Michigan, and she is a member of Gallery 25 in New Milford, the Society of Creative Arts of Newtown, the New England Watercolor Society, the Northeast Watercolor Society, and the Kent Art Association.
+
+aboutPhoto: ""                       # optional portrait, e.g. about/portrait.jpg — empty hides the frame
+
+contactEmail: scott@magoon.net       # TODO: replace with Mary Jane's preferred contact email
+obfuscateEmail: true                 # renders the email unreadable to spam scrapers, still clickable
+
+socialLinks: []                      # e.g. [{ label: Instagram, url: https://instagram.com/... }]
+
+# --- Every piece of text on the site ---
+uiText:
+  siteName: Artistic Surroundings
+  lobbyKicker: Watercolor Gallery
+  lobbyIntro: Original watercolor paintings by Mary Jane Magoon. Step into a room to browse the collection.
+  searchPlaceholder: Search…
+  backToLobby: Gallery Lobby
+  backToDirectory: Back
+  featuredTierLabel: Featured
+  allArtistsTierLabel: All
+  noSearchResults: Nothing matches that search.
+  countWords: "rooms · paintings"    # the two nouns used in counts, separated by ·
+  notFoundTitle: Empty Wall
+  notFoundMessage: There's no painting hanging here. Head back to the lobby and try another room.
+
+# --- Wings (the four rooms) ---
+# layout: single-wall means paintings live directly in content/<slug>/ —
+# drop a .jpg in, named after the painting ("Parrot Tulip.jpg"), and it hangs
+# on the next build. A file named cover.jpg becomes the lobby doorway image.
+# displayMode: grid hangs every room as a masonry grid.
+wings:
+  - name: Landscape
+    slug: landscape
+    layout: single-wall
+    displayMode: grid
+    description: "Barns, farms & wanderings"
+  - name: Still Life
+    slug: still-life
+    layout: single-wall
+    displayMode: grid
+    description: "Florals & found objects"
+  - name: People
+    slug: people
+    layout: single-wall
+    displayMode: grid
+    description: "Portraits & everyday scenes"
+  - name: Animals
+    slug: animals
+    layout: single-wall
+    displayMode: grid
+    description: "Furred & feathered friends"
+
+# --- Analytics (optional, privacy-friendly) ---
+analytics:
+  enabled: false
+  # provider: plausible | goatcounter
+  # siteId: artistic-surroundings.com
+
+# --- Museum theme ---
+theme:
+  wallColor: "#f4f0e7"     # gallery wall (warm plaster)
+  frameColor: "#4a3c2e"    # picture frames (walnut)
+  matColor: "#fbfaf7"      # mat board inside each frame
+
+# --- Advanced (correct defaults; you never need to touch this) ---
+advanced:
+  wallImageWidth: 800      # px, images as hung on walls
+  lightboxImageWidth: 2000 # px, enlarged view
+  imageQuality: 82         # JPEG/WebP quality (1-100)

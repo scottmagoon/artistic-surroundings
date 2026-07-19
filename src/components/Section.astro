@@ -1,0 +1,88 @@
+---
+// One wall segment: a titled sub-section with its paintings, rendered either
+// as a horizontal scroll wall or a masonry grid depending on the wing's
+// displayMode. Grid cells carry a placard with the painting's title, which
+// is simply its filename without the extension.
+import PhotoFrame from "./PhotoFrame.astro";
+import { splitDisplayTitle, countWordParts } from "../lib/text.mjs";
+
+interface Props {
+  settings: any;
+  wingConfig: any;
+  section: any; // { title, photos, folderName }
+  groupId: string;
+  displayMode: "scroll" | "grid";
+  altPrefix?: string; // context prepended to alt text
+  showHeading?: boolean; // false when the page H1 already names this wall
+}
+const { settings, wingConfig, section, groupId, displayMode, altPrefix, showHeading = true } = Astro.props;
+const { heading, dateLabel } = splitDisplayTitle(section.title);
+const { photoWord } = countWordParts(settings.uiText.countWords);
+
+const paintingTitle = (photo: any) => photo.filename.replace(/\.[^.]+$/, "");
+
+// Grid walls: browsers balance multicol by height, which leaves the last
+// row's gaps at arbitrary columns. Instead we pick every column break
+// ourselves — packed so any shortfall lands in the RIGHTMOST columns — and
+// force them with break-after (media-queried per column count, see CSS).
+// ~0.32 width-units approximates each frame's fixed chrome (mat, frame,
+// cell padding, placard) on top of the painting's own aspect height.
+const FRAME_CHROME = 0.32;
+function columnBreaks(photos: any[], cols: number): Set<number> {
+  const heights = photos.map((p) => p.height / p.width + FRAME_CHROME);
+  const breaks = new Set<number>();
+  let remaining = heights.reduce((a, b) => a + b, 0);
+  let col = 0;
+  let cum = 0;
+  let target = remaining / cols;
+  for (let i = 0; i < heights.length - 1 && col < cols - 1; i++) {
+    cum += heights[i];
+    if (cum >= target) {
+      breaks.add(i);
+      remaining -= cum;
+      col++;
+      cum = 0;
+      target = remaining / (cols - col);
+    }
+  }
+  return breaks;
+}
+const brk2 = displayMode === "grid" ? columnBreaks(section.photos, 2) : new Set();
+const brk3 = displayMode === "grid" ? columnBreaks(section.photos, 3) : new Set();
+const brk4 = displayMode === "grid" ? columnBreaks(section.photos, 4) : new Set();
+---
+
+<section class="wall-segment" id={groupId} aria-label={section.title}>
+  {showHeading && (
+    <div class="segment-head">
+      <h2 class="segment-title">{heading}</h2>
+    </div>
+  )}
+  <div class="segment-meta">{dateLabel ? `${dateLabel} · ` : ""}{section.photos.length} {photoWord}</div>
+
+  <div class={displayMode === "grid" ? "grid-wall" : "wall-scroll"} tabindex="0" role="group" aria-label={`${section.title} paintings, scrollable`}>
+    {section.photos.map((photo: any, idx: number) => {
+      const title = paintingTitle(photo);
+      const frame = (
+        <PhotoFrame
+          photo={photo}
+          alt={altPrefix ? `${altPrefix} — ${title}` : title}
+          index={idx}
+          groupId={groupId}
+          settings={settings}
+        />
+      );
+      // grid frames sit in a padded cell: padding (unlike margin) fragments
+      // atomically with break-inside, so Safari's multicol can't spill
+      // spacing into the next column's top and knock rows out of line
+      return displayMode === "grid" ? (
+        <div class:list={["grid-cell", { brk2: brk2.has(idx), brk3: brk3.has(idx), brk4: brk4.has(idx) }]}>
+          {frame}
+          <div class="placard"><div class="title">{title}</div></div>
+        </div>
+      ) : (
+        frame
+      );
+    })}
+  </div>
+</section>

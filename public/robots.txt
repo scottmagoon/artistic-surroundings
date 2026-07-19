@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://artistic-surroundings.vercel.app/sitemap-index.xml

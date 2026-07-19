@@ -1,0 +1,14 @@
+# build output / deps
+node_modules/
+dist/
+.astro/
+
+# OS
+.DS_Store
+
+# env
+.env
+.env.*
+
+# per-machine tool settings (not part of the site)
+.claude/settings.local.json
