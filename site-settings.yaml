@@ -22,7 +22,7 @@ aboutPageText: |
 
 aboutPhoto: ""                       # optional portrait, e.g. about/portrait.jpg — empty hides the frame
 
-contactEmail: scott@magoon.net       # TODO: replace with Mary Jane's preferred contact email
+contactEmail: mjmagoon@gmail.com       # TODO: replace with Mary Jane's preferred contact email
 obfuscateEmail: true                 # renders the email unreadable to spam scrapers, still clickable
 
 socialLinks: []                      # e.g. [{ label: Instagram, url: https://instagram.com/... }]
