@@ -76,10 +76,11 @@ analytics:
   # siteId: artistic-surroundings.com
 
 # --- Museum theme ---
+# "Barn Wood" palette — light brown wood-plank wall, dark-walnut frames.
 theme:
-  wallColor: "#f4f0e7"     # gallery wall (warm plaster)
-  frameColor: "#4a3c2e"    # picture frames (walnut)
-  matColor: "#fbfaf7"      # mat board inside each frame
+  wallColor: "#c9a877"     # gallery wall (light brown wood plank)
+  frameColor: "#3b2417"    # picture frames (dark walnut)
+  matColor: "#fbf6ec"      # mat board inside each frame
 
 # --- Advanced (correct defaults; you never need to touch this) ---
 advanced:
