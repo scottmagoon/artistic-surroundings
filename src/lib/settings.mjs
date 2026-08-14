@@ -20,6 +20,10 @@ const URL_RE = /^https?:\/\/[^\s]+\.[^\s]+$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+// URLs already taken by built-in pages / files in public/. A wing using one
+// of these would silently shadow that page instead of building its own.
+const RESERVED_SLUGS = new Set(["about", "tip", "404", "favicon", "robots", "sitemap"]);
+
 const LAYOUTS = ["directory", "sectioned-wall", "single-wall"];
 const DISPLAY_MODES = ["scroll", "grid"];
 const ANALYTICS_PROVIDERS = ["plausible", "goatcounter"];
@@ -43,6 +47,12 @@ function validateWing(wing, index, errors, warnings) {
   if (!req(errors, path, wing.slug, "slug is required")) return;
   if (!SLUG_RE.test(wing.slug)) {
     errors.push(`${path}: slug must be lowercase letters, numbers, and hyphens — found "${wing.slug}"`);
+  }
+  if (RESERVED_SLUGS.has(wing.slug)) {
+    errors.push(
+      `${path}: slug "${wing.slug}" is already used by a built-in page — pick a different slug ` +
+        `(reserved: ${[...RESERVED_SLUGS].join(", ")})`
+    );
   }
 
   if (!req(errors, path, wing.layout, "layout is required")) return;
