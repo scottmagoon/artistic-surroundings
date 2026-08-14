@@ -164,6 +164,8 @@ async function buildDirectoryWing(wing, warnings) {
     });
   }
 
+  assertUsableSlugs(artists, wing.slug);
+
   artists.sort((a, b) => {
     const aFeatured = a.featured !== false;
     const bFeatured = b.featured !== false;
@@ -175,6 +177,47 @@ async function buildDirectoryWing(wing, warnings) {
   });
 
   return { type: "directory", artists };
+}
+
+/**
+ * A slug becomes the artist's URL, so two folders that reduce to the same
+ * slug ("The Blenders" and "The Blenders!") would build the same page and
+ * one artist's wall would silently disappear. A name with no Latin
+ * alphanumerics at all ("!!!", "東京バンド") reduces to an empty slug and
+ * breaks the route outright. Both are loud build failures rather than
+ * silent content loss — with a concrete fix in the message.
+ */
+function assertUsableSlugs(artists, wingSlug) {
+  const empties = artists.filter((a) => !a.slug);
+  if (empties.length > 0) {
+    const names = empties.map((a) => `"${a.folderName}"`).join(", ");
+    throw new Error(
+      `\nFolder name${empties.length > 1 ? "s" : ""} in content/${wingSlug}/ ` +
+        `can't be turned into a web address: ${names}\n\n` +
+        `A folder needs at least one letter or number that a URL can use.\n` +
+        `Fix: rename the folder (e.g. add a readable name), or add a metadata.yaml\n` +
+        `in it with a "title:" line and rename the folder to something plain.\n`
+    );
+  }
+
+  const bySlug = new Map();
+  for (const a of artists) {
+    if (!bySlug.has(a.slug)) bySlug.set(a.slug, []);
+    bySlug.get(a.slug).push(a.folderName);
+  }
+  const collisions = [...bySlug.entries()].filter(([, names]) => names.length > 1);
+  if (collisions.length > 0) {
+    const detail = collisions
+      .map(([slug, names]) => `  ${names.map((n) => `"${n}"`).join(" and ")} both become "/${wingSlug}/${slug}"`)
+      .join("\n");
+    throw new Error(
+      `\nTwo folders in content/${wingSlug}/ produce the same web address:\n\n` +
+        `${detail}\n\n` +
+        `Only one of them could appear on the site, so this is stopped here rather\n` +
+        `than silently dropping an artist. Fix: rename one of the folders so they\n` +
+        `differ by more than punctuation.\n`
+    );
+  }
 }
 
 function findPhotoByFilename(sections, filename) {
